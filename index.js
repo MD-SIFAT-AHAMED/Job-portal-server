@@ -38,6 +38,20 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/jobs/applications',async(req,res)=>{
+      const email = req.query.email;
+      const query = {hr_email:email};
+      const jobs = await jobsCollections.find(query).toArray();
+
+      for(const job of jobs)
+      {
+        const applicationsQuery = {jobId : job._id.toString()};
+        const applications_count = await applicationCollections.countDocuments(applicationsQuery);
+        job.application_count = applications_count;
+      }
+      res.send(jobs);
+    })
+
     app.get("/jobs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -50,6 +64,7 @@ async function run() {
       const result = await jobsCollections.insertOne(newJobData);
       res.send(result);
     });
+
 
     //Jobs applications related Apis
 
