@@ -81,7 +81,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/applicaitons/:id", async (req, res) => {
+    app.patch("/applications/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
