@@ -17,14 +17,23 @@ app.use(
   })
 );
 
-const logger =(req,res,next)=>{
-  console.log("inside the logger middleware");
-  next();
-}
 
+// verify token
 const verifyToken =(req,res,next)=>{
-  console.log("Cookie in the middleware",req.cookies);
-  next();
+  const token = req?.cookies?.token;
+  if(!token)
+  {
+    return res.status(401).send({message: 'unauthorized'})
+  }
+  //verify token
+  jwt.verify(token,process.env.JWT_ACCESS_TOKEN,(err,decoded)=>{
+    if(err){
+      return res.status(401).send({message: 'unauthorized'})
+    }
+    req.decoded = decoded;
+    console.log(decoded);
+    next();
+  })
 }
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@jobportal.pqeysfz.mongodb.net/?retryWrites=true&w=majority&appName=jobPortal`;
@@ -99,10 +108,13 @@ async function run() {
     });
 
     //Jobs applications related Apis
-
-    app.get("/applications",logger,verifyToken,  async (req, res) => {
+    app.get("/applications",verifyToken,  async (req, res) => {
       const email = req.query.email;
-      console.log('inside applications api',req.cookies);
+      // console.log('inside applications api',req.cookies);
+      if(email !== req.decoded.email)
+      {
+        return res.status(403).send({message: 'forbidden access'})
+      }
       const query = { applicant: email };
       const result = await applicationCollections.find(query).toArray();
 
